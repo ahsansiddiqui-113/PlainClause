@@ -10,7 +10,7 @@ export function LegalPage({
   showUpdated?: boolean;
 }) {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
+    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <article className="prose prose-neutral max-w-none dark:prose-invert">
         <h1>{title}</h1>
         {showUpdated && <p className="text-sm text-muted-foreground">Last updated: {LEGAL_UPDATED}</p>}

@@ -13,10 +13,10 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="mx-auto max-w-2xl space-y-6 px-4 py-10">
+    <main className="mx-auto max-w-3xl space-y-8 px-4 py-12 sm:px-6">
       <JsonLd data={softwareJsonLd({ name: "Security Deposit Deduction Checker", description: String(metadata.description), url: absoluteUrl("/tools/deposit-deduction-checker") })} />
       <header className="space-y-2">
-        <h1 className="text-3xl font-bold">Security Deposit Deduction Checker</h1>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Security Deposit Deduction Checker</h1>
         <p className="text-muted-foreground">
           Enter your deposit and each deduction your landlord listed to see your refund. Your inputs
           are saved in the page link so you can share it.

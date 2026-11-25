@@ -12,10 +12,10 @@ export const metadata: Metadata = {
 
 export default function ClauseScannerPage() {
   return (
-    <main className="mx-auto max-w-2xl space-y-6 px-4 py-10">
+    <main className="mx-auto max-w-3xl space-y-8 px-4 py-12 sm:px-6">
       <JsonLd data={softwareJsonLd({ name: "Red-Flag Clause Scanner", description: String(metadata.description), url: absoluteUrl("/tools/clause-scanner") })} />
       <header className="space-y-2">
-        <h1 className="text-3xl font-bold">Red-Flag Clause Scanner</h1>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Red-Flag Clause Scanner</h1>
         <p className="text-muted-foreground">
           Paste a lease, freelance or job-offer clause and see what it really means, and what to
           watch out for. 3 free scans per day.

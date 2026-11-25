@@ -50,24 +50,24 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
+  --background: oklch(0.995 0.003 255);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.42 0.14 262);
+  --primary-foreground: oklch(0.99 0.005 262);
+  --secondary: oklch(0.955 0.02 262);
+  --secondary-foreground: oklch(0.32 0.1 262);
+  --muted: oklch(0.965 0.01 262);
+  --muted-foreground: oklch(0.47 0.025 262);
+  --accent: oklch(0.95 0.025 262);
+  --accent-foreground: oklch(0.32 0.1 262);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: oklch(0.915 0.012 262);
+  --input: oklch(0.88 0.015 262);
+  --ring: oklch(0.55 0.16 262);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -125,7 +125,27 @@
   body {
     @apply bg-background text-foreground;
   }
+  h1, h2, h3 { text-wrap: balance; }
   html {
     font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   }
 }
+/* Article prose: brand links, no doubled typographic quotes on blockquotes. */
+.prose blockquote p:first-of-type::before,
+.prose blockquote p:last-of-type::after {
+  content: none;
+}
+.prose blockquote {
+  font-style: normal;
+  font-weight: 400;
+  border-inline-start-color: var(--primary);
+  background: var(--accent);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding: 0.5rem 1.1rem;
+}
+.prose a {
+  color: var(--primary);
+  text-decoration-color: color-mix(in oklab, var(--primary) 40%, transparent);
+  text-underline-offset: 3px;
+}
+.prose h2 { margin-top: 2.25em; }

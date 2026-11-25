@@ -9,6 +9,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { Analysis } from "@/lib/ai/schema";
 
 const MAX = 600;
+const EXAMPLE =
+  "Landlord may retain the entire security deposit as liquidated damages upon termination for any reason. Tenant waives any claim to an itemized statement of deductions.";
 type Level = "LOW" | "MEDIUM" | "HIGH";
 type Result = Omit<Analysis, "negotiationCounterScript"> & {
   negotiationTeaser: string;
@@ -63,15 +65,23 @@ export function ClauseScanner({ presetText = "" }: { presetText?: string }) {
           onChange={(e) => setText(e.target.value.slice(0, MAX))}
           placeholder="Paste one or two contract paragraphs here…"
           rows={7}
+          className="text-base"
           aria-label="Contract text"
         />
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
           <span>
             {text.length}/{MAX} characters
           </span>
-          <Button onClick={scan} disabled={loading || tooShort}>
-            {loading ? "Scanning…" : "Scan for red flags"}
-          </Button>
+          <div className="flex gap-2">
+            {!text && (
+              <Button variant="outline" onClick={() => setText(EXAMPLE)}>
+                Try an example
+              </Button>
+            )}
+            <Button onClick={scan} disabled={loading || tooShort}>
+              {loading ? "Scanning…" : "Scan for red flags"}
+            </Button>
+          </div>
         </div>
       </div>
 

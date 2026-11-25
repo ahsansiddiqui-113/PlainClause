@@ -57,15 +57,28 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   if (faqs.length) jsonLd.push(faqJsonLd(faqs));
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
+    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <JsonLd data={jsonLd} />
-      <article className="prose prose-neutral max-w-none dark:prose-invert">
-        <p className="not-prose text-sm text-muted-foreground">
-          {post.meta.category} · <time dateTime={post.meta.date}>{post.meta.date}</time>
-        </p>
-        <h1>{post.meta.title}</h1>
-        {post.source && <MDXRemote source={post.source} components={components} />}
-        {post.gated && <ArticlePaywall hasPreview={Boolean(post.source)} />}
+      <article>
+        <header className="mb-8 space-y-4 border-b pb-8">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="rounded-full bg-accent px-3 py-1 font-medium text-accent-foreground">
+              {post.meta.category}
+            </span>
+            <time dateTime={post.meta.date} className="text-muted-foreground">
+              {post.meta.date}
+            </time>
+            {post.meta.isPremium && (
+              <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">Pro</span>
+            )}
+          </div>
+          <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{post.meta.title}</h1>
+          <p className="text-lg text-muted-foreground">{post.meta.description}</p>
+        </header>
+        <div className="prose prose-neutral max-w-none prose-headings:tracking-tight md:prose-lg dark:prose-invert">
+          {post.source && <MDXRemote source={post.source} components={components} />}
+          {post.gated && <ArticlePaywall hasPreview={Boolean(post.source)} />}
+        </div>
       </article>
       <p className="mt-10 text-xs text-muted-foreground">
         Informational and educational content only. Not legal advice.

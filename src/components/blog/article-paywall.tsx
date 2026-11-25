@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonClass } from "@/components/ui/button";
 
 export function ArticlePaywall({ hasPreview = true }: { hasPreview?: boolean }) {
   return (
@@ -11,7 +11,7 @@ export function ArticlePaywall({ hasPreview = true }: { hasPreview?: boolean }) 
       <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
         Unlock full negotiation playbooks, word-for-word email scripts and unlimited document scans.
       </p>
-      <Link href="/pricing" className={`${buttonVariants()} mt-4`}>
+      <Link href="/pricing" className={`${buttonClass()} mt-4`}>
         Upgrade to Pro
       </Link>
     </div>

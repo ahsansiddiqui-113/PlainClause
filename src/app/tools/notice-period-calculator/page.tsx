@@ -13,10 +13,10 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="mx-auto max-w-2xl space-y-6 px-4 py-10">
+    <main className="mx-auto max-w-3xl space-y-8 px-4 py-12 sm:px-6">
       <JsonLd data={softwareJsonLd({ name: "Lease Notice Period Calculator", description: String(metadata.description), url: absoluteUrl("/tools/notice-period-calculator") })} />
       <header className="space-y-2">
-        <h1 className="text-3xl font-bold">Lease Notice Period Calculator</h1>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Lease Notice Period Calculator</h1>
         <p className="text-muted-foreground">
           Missing a notice deadline can lock you into another lease term. Enter your lease end date
           and notice period to see your deadline. Your inputs are saved in the page link so you can

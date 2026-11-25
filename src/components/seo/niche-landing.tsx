@@ -15,7 +15,7 @@ export type NicheContent = {
 
 export function NicheLanding({ c }: { c: NicheContent }) {
   return (
-    <main className="mx-auto max-w-3xl space-y-10 px-4 py-10">
+    <main className="mx-auto max-w-3xl space-y-12 px-4 py-12 sm:px-6">
       <JsonLd
         data={[
           softwareJsonLd({ name: c.h1, description: c.intro, url: absoluteUrl(c.path) }),
@@ -23,7 +23,7 @@ export function NicheLanding({ c }: { c: NicheContent }) {
         ]}
       />
       <header className="space-y-3">
-        <h1 className="text-3xl font-bold">{c.h1}</h1>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{c.h1}</h1>
         <p className="text-muted-foreground">{c.intro}</p>
       </header>
 
