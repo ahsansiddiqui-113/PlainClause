@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Suspense } from "react";
+import { Wrap } from "@/components/site/wrap";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { ArticlePaywall } from "@/components/blog/article-paywall";
 import { ClauseScanner } from "@/components/tools/clause-scanner";
@@ -80,10 +83,13 @@ async function Article({ params }: { params: Promise<{ slug: string }> }) {
   ];
   if (faqs.length) jsonLd.push(faqJsonLd(faqs));
 
+  const related = getAllPosts().filter((p) => p.slug !== slug && p.category === post.meta.category).slice(0, 3);
+  const more = related.length ? related : getAllPosts().filter((p) => p.slug !== slug && !p.isPremium).slice(0, 3);
+
   return (
-    <>
+    <div className="grid gap-12 xl:grid-cols-[minmax(0,1fr)_25rem] xl:gap-16">
       <JsonLd data={jsonLd} />
-      <article>
+      <article className="min-w-0">
         <header className="mb-8 space-y-4 border-b pb-8">
           <div className="flex items-center gap-2 text-sm">
             <span className="rounded-full bg-accent px-3 py-1 font-medium text-accent-foreground">
@@ -98,10 +104,10 @@ async function Article({ params }: { params: Promise<{ slug: string }> }) {
               </span>
             )}
           </div>
-          <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{post.meta.title}</h1>
-          <p className="text-lg text-muted-foreground">{post.meta.description}</p>
+          <h1 className="text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">{post.meta.title}</h1>
+          <p className="text-xl text-muted-foreground sm:text-2xl">{post.meta.description}</p>
         </header>
-        <div className="prose prose-neutral max-w-none prose-headings:tracking-tight md:prose-lg dark:prose-invert">
+        <div className="prose prose-neutral max-w-none prose-headings:tracking-tight prose-lg dark:prose-invert xl:prose-xl">
           {post.source && <MDXRemote source={post.source} components={components} />}
           {post.gated && (
             <Suspense fallback={<div className="h-40 animate-pulse rounded-lg bg-muted/60" aria-hidden />}>
@@ -110,19 +116,43 @@ async function Article({ params }: { params: Promise<{ slug: string }> }) {
           )}
         </div>
       </article>
-    </>
+      <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
+        <div className="relative isolate overflow-hidden rounded-3xl bg-primary p-7 text-primary-foreground">
+          <div className="bg-grid-dark absolute inset-0 -z-10 opacity-60" aria-hidden />
+          <h2 className="text-2xl font-bold">Got a clause like this?</h2>
+          <p className="mt-2 text-lg text-primary-foreground/85">Paste it into the free scanner and see what it means in plain English.</p>
+          <Link href="/tools/clause-scanner" className="mt-5 inline-flex h-12 items-center gap-2 rounded-lg bg-white px-6 text-lg font-semibold text-primary transition-transform hover:-translate-y-0.5">
+            Scan a clause <ArrowRight className="size-5" aria-hidden />
+          </Link>
+        </div>
+        {more.length > 0 && (
+          <div className="rounded-3xl border bg-card p-6">
+            <h2 className="text-lg font-semibold">Keep reading</h2>
+            <ul className="mt-3 space-y-1">
+              {more.map((p) => (
+                <li key={p.slug}>
+                  <Link href={`/blog/${p.slug}`} className="block rounded-xl px-3 py-3 text-base font-medium leading-snug transition-colors hover:bg-accent">
+                    {p.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <p className="px-1 text-sm text-muted-foreground">Informational and educational content only. Not legal advice.</p>
+      </aside>
+    </div>
   );
 }
 
 export default function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <Suspense fallback={<ArticleSkeleton />}>
-        <Article params={params} />
-      </Suspense>
-      <p className="mt-10 text-xs text-muted-foreground">
-        Informational and educational content only. Not legal advice.
-      </p>
+    <main>
+      <Wrap className="py-12 lg:py-16">
+        <Suspense fallback={<ArticleSkeleton />}>
+          <Article params={params} />
+        </Suspense>
+      </Wrap>
     </main>
   );
 }

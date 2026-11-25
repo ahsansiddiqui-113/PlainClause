@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { JsonLd, softwareJsonLd } from "@/components/seo/json-ld";
 import { absoluteUrl } from "@/lib/site";
-import { Suspense } from "react";
 import { NoticeCalculator } from "@/components/tools/notice-calculator";
+import { RelatedTools, SideCard, ToolShell } from "@/components/site/tool-shell";
 
 export const metadata: Metadata = {
   title: "Lease Notice Period Calculator",
@@ -13,23 +14,36 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="mx-auto max-w-3xl space-y-8 px-4 py-12 sm:px-6">
-      <JsonLd data={softwareJsonLd({ name: "Lease Notice Period Calculator", description: String(metadata.description), url: absoluteUrl("/tools/notice-period-calculator") })} />
-      <header className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Lease Notice Period Calculator</h1>
-        <p className="text-muted-foreground">
-          Missing a notice deadline can lock you into another lease term. Enter your lease end date
-          and notice period to see your deadline. Your inputs are saved in the page link so you can
-          share it.
+    <>
+      <JsonLd
+        data={softwareJsonLd({
+          name: "Lease Notice Period Calculator",
+          description: String(metadata.description),
+          url: absoluteUrl("/tools/notice-period-calculator"),
+        })}
+      />
+      <ToolShell
+        eyebrow="Free calculator · No AI"
+        title="Lease Notice Period Calculator"
+        intro="Missing a notice deadline can lock you into another lease term. Enter your lease end date and notice period to see your deadline. Your inputs are saved in the page link so you can share it."
+        aside={
+          <>
+            <SideCard title="Good to know" tone="accent">
+              <p>Some leases count notice from the next rent due date instead of the end date. Check your lease.</p>
+              <p>Written notice often must be delivered in a specific way. Email may not count.</p>
+              <p>Add a calendar reminder a few days before your deadline.</p>
+            </SideCard>
+            <RelatedTools exclude="/tools/notice-period-calculator" />
+          </>
+        }
+      >
+        <Suspense fallback={<div className="h-80 animate-pulse rounded-3xl bg-muted/60" aria-hidden />}>
+          <NoticeCalculator />
+        </Suspense>
+        <p className="text-sm text-muted-foreground">
+          Estimates only. Some leases and local laws count notice differently. Informational tool, not legal advice.
         </p>
-      </header>
-      <Suspense>
-        <NoticeCalculator />
-      </Suspense>
-      <p className="text-xs text-muted-foreground">
-        Estimates only. Some leases and local laws count notice differently (for example, from the
-        next rent due date). Check your lease. Informational tool, not legal advice.
-      </p>
-    </main>
+      </ToolShell>
+    </>
   );
 }

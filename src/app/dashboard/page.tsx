@@ -27,12 +27,12 @@ async function DashboardContent({ searchParams }: { searchParams: Promise<{ save
     <div className="space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Your vault</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">Your vault</h1>
+          <p className="mt-1 text-lg text-muted-foreground">
             Signed in as {user.email} · {user.plan === "pro" ? "Pro plan" : "Free plan"}
           </p>
         </div>
-        <div className="flex gap-4 text-sm font-medium">
+        <div className="flex gap-3 text-base font-medium">
           <Link href="/dashboard/upload" className="text-primary hover:underline">
             Scan a document
           </Link>
@@ -56,18 +56,18 @@ async function DashboardContent({ searchParams }: { searchParams: Promise<{ save
           </p>
         </div>
       ) : (
-        <ul className="space-y-3">
+        <ul className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
           {docs.map((d) => {
             const r = riskLabel(d.riskScore);
             return (
-              <li key={d.id} className="rounded-xl border bg-card p-5">
+              <li key={d.id} className="rounded-3xl border bg-card p-6 transition-shadow hover:shadow-lg hover:shadow-primary/10">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${r.cls}`}>{r.text}</span>
                   <time className="text-xs text-muted-foreground" dateTime={d.createdAt.toISOString()}>
                     {d.createdAt.toISOString().slice(0, 10)}
                   </time>
                 </div>
-                <p className="mt-2 font-medium">{d.title}</p>
+                <p className="mt-3 text-lg font-semibold leading-snug">{d.title}</p>
                 {(d.noticeDeadlineDate || d.renewalDate) && (
                   <p className="mt-1 text-sm text-muted-foreground">
                     {d.noticeDeadlineDate && <>Notice deadline: {d.noticeDeadlineDate}</>}
@@ -86,7 +86,7 @@ async function DashboardContent({ searchParams }: { searchParams: Promise<{ save
 
 export default function DashboardPage({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
   return (
-    <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+    <main className="mx-auto w-full max-w-[96rem] px-5 py-12 sm:px-8 lg:px-14 lg:py-16">
       <Suspense fallback={<div className="h-48 animate-pulse rounded-xl bg-muted/60" aria-hidden />}>
         <DashboardContent searchParams={searchParams} />
       </Suspense>

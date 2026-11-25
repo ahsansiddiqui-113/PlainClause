@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { JsonLd, softwareJsonLd } from "@/components/seo/json-ld";
 import { absoluteUrl } from "@/lib/site";
-import { Suspense } from "react";
 import { DepositChecker } from "@/components/tools/deposit-checker";
+import { RelatedTools, SideCard, ToolShell } from "@/components/site/tool-shell";
 
 export const metadata: Metadata = {
   title: "Security Deposit Deduction Checker",
@@ -13,23 +14,34 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="mx-auto max-w-3xl space-y-8 px-4 py-12 sm:px-6">
-      <JsonLd data={softwareJsonLd({ name: "Security Deposit Deduction Checker", description: String(metadata.description), url: absoluteUrl("/tools/deposit-deduction-checker") })} />
-      <header className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Security Deposit Deduction Checker</h1>
-        <p className="text-muted-foreground">
-          Enter your deposit and each deduction your landlord listed to see your refund. Your inputs
-          are saved in the page link so you can share it.
-        </p>
-      </header>
-      <Suspense>
-        <DepositChecker />
-      </Suspense>
-      <p className="text-xs text-muted-foreground">
-        This tool only does arithmetic; it cannot tell you whether a deduction is legal. Normal wear
-        and tear is generally not deductible, but rules vary by location. Informational tool, not
-        legal advice.
-      </p>
-    </main>
+    <>
+      <JsonLd
+        data={softwareJsonLd({
+          name: "Security Deposit Deduction Checker",
+          description: String(metadata.description),
+          url: absoluteUrl("/tools/deposit-deduction-checker"),
+        })}
+      />
+      <ToolShell
+        eyebrow="Free calculator · No AI"
+        title="Security Deposit Deduction Checker"
+        intro="Enter your deposit and each deduction your landlord listed to see your refund. Your inputs are saved in the page link so you can share it."
+        aside={
+          <>
+            <SideCard title="Good to know" tone="accent">
+              <p>Normal wear and tear is generally not deductible, but rules vary by location.</p>
+              <p>Ask for receipts or estimates for every deduction you disagree with.</p>
+              <p>This tool only adds numbers. It can&apos;t tell you whether a charge is legal.</p>
+            </SideCard>
+            <RelatedTools exclude="/tools/deposit-deduction-checker" />
+          </>
+        }
+      >
+        <Suspense fallback={<div className="h-80 animate-pulse rounded-3xl bg-muted/60" aria-hidden />}>
+          <DepositChecker />
+        </Suspense>
+        <p className="text-sm text-muted-foreground">Informational tool, not legal advice.</p>
+      </ToolShell>
+    </>
   );
 }

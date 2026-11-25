@@ -24,7 +24,7 @@ export function Logo() {
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-[4.5rem] w-full max-w-[96rem] items-center justify-between gap-4 px-5 sm:px-8 lg:px-14">
         <Logo />
         <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
           {links.map((l) => (
@@ -107,7 +107,7 @@ function FooterCol({ title, items }: { title: string; items: { href: string; lab
 export function SiteFooter() {
   return (
     <footer className="mt-20 border-t bg-muted/40">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr]">
+      <div className="mx-auto grid w-full max-w-[96rem] gap-10 px-5 py-14 sm:px-8 lg:px-14 md:grid-cols-[1.6fr_1fr_1fr]">
         <div className="space-y-3">
           <Logo />
           <p className="max-w-xs text-sm text-muted-foreground">
@@ -119,7 +119,7 @@ export function SiteFooter() {
         <FooterCol title="Company" items={companyLinks} />
       </div>
       <div className="border-t">
-        <p className="mx-auto max-w-6xl px-4 py-5 text-sm text-muted-foreground sm:px-6">
+        <p className="mx-auto w-full max-w-[96rem] px-5 py-6 text-sm text-muted-foreground sm:px-8 lg:px-14">
           PlainClause is an informational and educational tool only. It is not a law firm and is not
           a substitute for licensed legal counsel.
         </p>
