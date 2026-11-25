@@ -21,6 +21,7 @@ export function AuthForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [checkEmail, setCheckEmail] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,6 +34,11 @@ export function AuthForm() {
           : await authClient.signIn.email({ email, password });
       if (res.error) {
         setError(res.error.message ?? "Something went wrong. Please try again.");
+        return;
+      }
+      // With email verification on, sign-up succeeds but returns no session until the link is clicked.
+      if (mode === "signup" && !(res.data as { token?: string | null } | null)?.token) {
+        setCheckEmail(true);
         return;
       }
       router.replace(next);
@@ -48,6 +54,17 @@ export function AuthForm() {
     setError(null);
     const res = await authClient.signIn.social({ provider: "google", callbackURL: next });
     if (res?.error) setError(res.error.message ?? "Google sign-in is unavailable.");
+  }
+
+  if (checkEmail) {
+    return (
+      <Alert>
+        <AlertDescription>
+          <strong>Check your inbox.</strong> We sent a confirmation link to {email}. Click it to finish creating your
+          account, then sign in. The link may take a minute to arrive; check spam too.
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   return (

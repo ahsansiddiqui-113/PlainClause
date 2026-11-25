@@ -120,6 +120,22 @@ export const scannedDocuments = pgTable(
   ],
 );
 
+// One row per (document, deadline, threshold) alert already claimed/sent, so the daily cron
+// never emails the same reminder twice.
+export const deadlineAlerts = pgTable(
+  "deadline_alerts",
+  {
+    documentId: uuid("document_id")
+      .notNull()
+      .references(() => scannedDocuments.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(), // notice | renewal
+    deadlineDate: date("deadline_date").notNull(),
+    threshold: integer("threshold").notNull(), // days before: 30 | 14 | 3
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.documentId, t.kind, t.deadlineDate, t.threshold] })],
+);
+
 // Idempotency log for billing webhooks.
 export const webhookEvents = pgTable("webhook_events", {
   eventId: text("event_id").primaryKey(),

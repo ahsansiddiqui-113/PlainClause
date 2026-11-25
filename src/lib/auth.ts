@@ -4,6 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { emailConfigured, emailLayout, escapeHtml, sendEmail } from "@/lib/email";
 import { SITE_URL } from "@/lib/site";
 
 const googleId = process.env.GOOGLE_CLIENT_ID;
@@ -33,8 +34,28 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
-    // Email verification is switched on once Resend is wired up (Day 14).
-    requireEmailVerification: false,
+    // Only enforced when email can actually be delivered; otherwise nobody could ever sign in.
+    requireEmailVerification: emailConfigured(),
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    sendOnSignIn: true, // re-sends the link when an unverified user tries to sign in
+    autoSignInAfterVerification: true,
+    async sendVerificationEmail({ user, url }) {
+      await sendEmail({
+        to: user.email,
+        subject: "Confirm your email for PlainClause",
+        html: emailLayout(
+          "Confirm your email",
+          `<p>Hi ${escapeHtml(user.name || "there")}, confirm your email address to finish creating your PlainClause account.</p>` +
+            `<p><a href="${url}" style="display:inline-block;padding:12px 20px;background:#1e3a8a;color:#fff;border-radius:8px;text-decoration:none">Confirm email</a></p>` +
+            `<p style="font-size:13px;color:#6b7280">If you didn’t sign up, you can ignore this email.</p>`,
+        ),
+        text: `Confirm your email for PlainClause: ${url}
+
+If you did not sign up, ignore this email.`,
+      });
+    },
   },
   socialProviders:
     googleId && googleSecret ? { google: { clientId: googleId, clientSecret: googleSecret } } : {},
