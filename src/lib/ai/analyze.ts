@@ -2,6 +2,9 @@ import { generateText, Output } from "ai";
 import { google } from "@ai-sdk/google";
 import { analysisSchema, type Analysis } from "./schema";
 
+// Overridable without a deploy. gemini-2.5-flash is closed to new API keys, so default to a current flash model (3.8 was overloaded when tested).
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
+
 export type AnalyzeMode = "snippet" | "full_doc";
 
 export const MAX_SNIPPET_CHARS = 600;
@@ -31,7 +34,7 @@ export async function analyzeClauseOrDoc(text: string, mode: AnalyzeMode): Promi
   }
 
   const { output } = await generateText({
-    model: google("gemini-2.5-flash"),
+    model: google(MODEL),
     system: SYSTEM,
     output: Output.object({ schema: analysisSchema }),
     temperature: 0.2,
