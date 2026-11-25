@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Menu, ShieldCheck } from "lucide-react";
+import { Menu } from "lucide-react";
+import { BrandMark } from "@/components/site/brand-mark";
 import { buttonClass } from "@/components/ui/button";
 import { UserMenu } from "@/components/site/user-menu";
 import { CookieSettingsButton } from "@/components/ads/consent-banner";
@@ -15,9 +16,7 @@ const links = [
 export function Logo() {
   return (
     <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight">
-      <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-        <ShieldCheck className="size-5" aria-hidden />
-      </span>
+      <BrandMark size={34} />
       PlainClause
     </Link>
   );

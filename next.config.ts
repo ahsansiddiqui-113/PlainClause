@@ -6,6 +6,21 @@ const nextConfig: NextConfig = {
   // PGlite (optional local dev database) must load unbundled from node_modules.
   serverExternalPackages: ["@electric-sql/pglite"],
   partialPrefetching: true,
+  poweredByHeader: false,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+        ],
+      },
+    ];
+  },
   turbopack: {
     rules: {
       "*.css": {

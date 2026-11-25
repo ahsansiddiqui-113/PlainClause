@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -49,6 +50,8 @@ const steps = [
   { icon: Sparkles, title: "See it in plain English", desc: "A clear translation plus red flags quoted straight from your own text." },
   { icon: Handshake, title: "Know what to ask for", desc: "Walk into the conversation prepared, with a polite email draft to push back." },
 ];
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default function Home() {
   const posts = getAllPosts().filter((p) => !p.isPremium).slice(0, 4);
