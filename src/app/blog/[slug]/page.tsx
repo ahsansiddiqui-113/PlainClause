@@ -8,6 +8,7 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import { ArticlePaywall } from "@/components/blog/article-paywall";
 import { ClauseScanner } from "@/components/tools/clause-scanner";
 import { faqJsonLd, JsonLd } from "@/components/seo/json-ld";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { extractFaqs, getAllPosts, getGatedRemainder, getPostForReader } from "@/lib/posts";
 import { absoluteUrl, SITE_NAME, SITE_URL } from "@/lib/site";
 import { getCurrentUser } from "@/lib/session";
@@ -114,6 +115,7 @@ async function Article({ params }: { params: Promise<{ slug: string }> }) {
               <ProRemainder slug={slug} />
             </Suspense>
           )}
+          <AdSlot name="inline" className="not-prose mt-10" />
         </div>
       </article>
       <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
@@ -139,6 +141,7 @@ async function Article({ params }: { params: Promise<{ slug: string }> }) {
             </ul>
           </div>
         )}
+        <AdSlot name="sidebar" />
         <p className="px-1 text-sm text-muted-foreground">Informational and educational content only. Not legal advice.</p>
       </aside>
     </div>

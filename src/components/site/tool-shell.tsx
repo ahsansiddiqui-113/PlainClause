@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, CalendarClock, ScanText, ShieldCheck, WalletCards } from "lucide-react";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { Wrap } from "@/components/site/wrap";
 
 export function ToolShell({
@@ -32,7 +33,10 @@ export function ToolShell({
       </section>
       <Wrap className="grid gap-10 py-12 lg:grid-cols-[minmax(0,1fr)_26rem] lg:gap-14 lg:py-16 xl:grid-cols-[minmax(0,1fr)_30rem]">
         <div className="min-w-0 space-y-10">{children}</div>
-        <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">{aside}</aside>
+        <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
+          {aside}
+          <AdSlot name="sidebar" />
+        </aside>
       </Wrap>
     </main>
   );

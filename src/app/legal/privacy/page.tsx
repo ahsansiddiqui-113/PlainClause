@@ -62,9 +62,10 @@ export default function Page() {
           error logging to fix bugs and improve the tools.
         </li>
         <li>
-          <strong>Advertising cookies:</strong> free public pages may show ads. Where required (for
-          example in the EEA and UK) we ask for your consent first, and you can decline. Pro
-          members do not see ads.
+          <strong>Advertising cookies:</strong> free public pages may show ads. Ads and
+          their cookies load only after you accept the cookie banner; you can decline, and change
+          your choice any time with &ldquo;Cookie settings&rdquo; in the footer. Pro members do not
+          see ads.
         </li>
       </ul>
 

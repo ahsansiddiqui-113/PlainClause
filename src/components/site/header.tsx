@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Menu, ShieldCheck } from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
 import { UserMenu } from "@/components/site/user-menu";
+import { CookieSettingsButton } from "@/components/ads/consent-banner";
 
 const links = [
   { href: "/tools/clause-scanner", label: "Clause Scanner" },
@@ -101,6 +102,11 @@ function FooterCol({ title, items }: { title: string; items: { href: string; lab
             </Link>
           </li>
         ))}
+        {title === "Company" && (
+          <li>
+            <CookieSettingsButton />
+          </li>
+        )}
       </ul>
     </div>
   );

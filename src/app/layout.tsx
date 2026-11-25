@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { SiteFooter, SiteHeader } from "@/components/site/header";
+import { AdScriptLoader } from "@/components/ads/ad-script-loader";
+import { ConsentBanner } from "@/components/ads/consent-banner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,6 +36,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteHeader />
         <div className="flex-1">{children}</div>
         <SiteFooter />
+        {/* Client-only ad gating reads the URL and session, so it streams in behind Suspense. */}
+        <Suspense fallback={null}>
+          <AdScriptLoader />
+        </Suspense>
+        <ConsentBanner />
       </body>
     </html>
   );
