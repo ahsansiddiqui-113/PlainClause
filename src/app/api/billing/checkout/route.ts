@@ -21,21 +21,30 @@ export async function POST(req: Request) {
   }
 
   const site = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
-  const res = await fetch(`${cfg.apiBase}/checkouts/`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${cfg.token}`, "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({
-      products: [cfg.products[parsed.data.plan]],
-      // Becomes customer.external_id in every subscription webhook: how we map payments to users.
-      external_customer_id: user.id,
-      customer_email: user.email,
-      metadata: { user_id: user.id },
-      success_url: `${site}/dashboard?upgraded=1`,
-    }),
-  }).catch(() => null);
+  const create = (withEmail: boolean) =>
+    fetch(`${cfg.apiBase}/checkouts/`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${cfg.token}`, "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        products: [cfg.products[parsed.data.plan]],
+        // Becomes customer.external_id in every subscription webhook: how we map payments to users.
+        external_customer_id: user.id,
+        ...(withEmail ? { customer_email: user.email } : {}),
+        metadata: { user_id: user.id },
+        success_url: `${site}/dashboard?upgraded=1`,
+      }),
+    }).catch(() => null);
+
+  let res = await create(true);
+  if (res?.status === 422) {
+    // Polar validates email deliverability; if it rejects ours, let the checkout page ask for one.
+    const detail = await res.text().catch(() => "");
+    if (detail.includes("customer_email")) res = await create(false);
+    else console.error("polar checkout failed 422", detail);
+  }
 
   if (!res || !res.ok) {
-    if (res) console.error("polar checkout failed", res.status, await res.text().catch(() => ""));
+    if (res && res.status !== 422) console.error("polar checkout failed", res.status, await res.text().catch(() => ""));
     return NextResponse.json({ error: "Couldn't start checkout. Please try again." }, { status: 502 });
   }
   const json = (await res.json()) as { url?: string };
