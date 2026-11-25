@@ -12,6 +12,7 @@ export function logEnvWarnings() {
   if (!v.POLAR_ACCESS_TOKEN || !v.POLAR_WEBHOOK_SECRET || !v.POLAR_PRODUCT_MONTHLY || !v.POLAR_PRODUCT_ANNUAL) warn.push("Polar not configured: checkout disabled");
   if (v.POLAR_SERVER !== "production") warn.push("POLAR_SERVER is not production: payments go to the Polar sandbox");
   if (!v.RESEND_API_KEY || !v.EMAIL_FROM) warn.push("Resend not configured: no verification emails or deadline alerts");
+  if (/@resend\.dev\b/i.test(v.EMAIL_FROM ?? "")) warn.push("EMAIL_FROM uses Resend's test sender: email verification is OFF and only the Resend account owner receives mail. Verify a domain and change EMAIL_FROM");
   if (!v.CRON_SECRET) warn.push("CRON_SECRET missing: deadline-alert cron will return 503");
   for (const w of warn) console.warn(`[config] ${w}`);
   if (!warn.length) console.info("[config] all required environment variables are set");

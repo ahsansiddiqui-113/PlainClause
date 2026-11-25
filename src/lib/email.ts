@@ -4,6 +4,16 @@ export function emailConfigured() {
   return !!process.env.RESEND_API_KEY && !!process.env.EMAIL_FROM;
 }
 
+/**
+ * Can we reliably email ANY user? Resend's shared test sender (onboarding@resend.dev) only delivers
+ * to the Resend account owner's own address, so until a sending domain is verified, mail to anyone
+ * else silently fails. Requiring email verification in that state would lock every new user out.
+ */
+export function canEmailAnyone() {
+  const from = process.env.EMAIL_FROM ?? "";
+  return emailConfigured() && !/@resend\.dev\b/i.test(from);
+}
+
 export const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 

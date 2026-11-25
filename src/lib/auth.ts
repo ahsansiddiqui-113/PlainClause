@@ -4,7 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
-import { emailConfigured, emailLayout, escapeHtml, sendEmail } from "@/lib/email";
+import { canEmailAnyone, emailLayout, escapeHtml, sendEmail } from "@/lib/email";
 import { SITE_URL } from "@/lib/site";
 
 const googleId = process.env.GOOGLE_CLIENT_ID;
@@ -34,12 +34,12 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
-    // Only enforced when email can actually be delivered; otherwise nobody could ever sign in.
-    requireEmailVerification: emailConfigured(),
+    // Only enforced when email can actually reach every user; otherwise nobody could ever sign in.
+    requireEmailVerification: canEmailAnyone(),
   },
   emailVerification: {
-    sendOnSignUp: true,
-    sendOnSignIn: true, // re-sends the link when an unverified user tries to sign in
+    sendOnSignUp: canEmailAnyone(),
+    sendOnSignIn: canEmailAnyone(), // re-sends the link when an unverified user tries to sign in
     autoSignInAfterVerification: true,
     async sendVerificationEmail({ user, url }) {
       await sendEmail({

@@ -13,6 +13,7 @@ import { buildDeadlines, riskTier, urgency } from "@/lib/deadlines";
 import { toCsv } from "@/lib/exports";
 import { safeNext } from "@/lib/safe-next";
 import { isAdRoute } from "@/lib/ads";
+import { canEmailAnyone } from "@/lib/email";
 import type { StoredDocument } from "@/lib/vault";
 
 describe("calculators", () => {
@@ -155,5 +156,25 @@ describe("ad routes", () => {
     for (const no of ["/dashboard", "/dashboard/billing", "/login", "/pricing", "/import", "/legal/privacy", null]) {
       expect(isAdRoute(no as string | null)).toBe(false);
     }
+  });
+});
+
+describe("canEmailAnyone (verification gate)", () => {
+  const set = (key: string | undefined, from: string | undefined) => {
+    if (key === undefined) delete process.env.RESEND_API_KEY; else process.env.RESEND_API_KEY = key;
+    if (from === undefined) delete process.env.EMAIL_FROM; else process.env.EMAIL_FROM = from;
+  };
+  it("is true only with a key and a non-test sender", () => {
+    set("re_x", "PlainClause <hello@plainclause.com>");
+    expect(canEmailAnyone()).toBe(true);
+    set("re_x", "PlainClause <onboarding@resend.dev>");
+    expect(canEmailAnyone()).toBe(false); // test sender: only reaches the account owner
+    set("re_x", "onboarding@RESEND.DEV");
+    expect(canEmailAnyone()).toBe(false);
+    set(undefined, "hello@plainclause.com");
+    expect(canEmailAnyone()).toBe(false);
+    set("re_x", undefined);
+    expect(canEmailAnyone()).toBe(false);
+    set(undefined, undefined);
   });
 });
