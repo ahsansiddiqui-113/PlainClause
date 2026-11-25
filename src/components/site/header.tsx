@@ -29,7 +29,18 @@ export function SiteHeader() {
 export function SiteFooter() {
   return (
     <footer className="mt-16 border-t">
-      <div className="mx-auto max-w-5xl space-y-1 px-4 py-6 text-xs text-muted-foreground">
+      <div className="mx-auto max-w-5xl space-y-3 px-4 py-6 text-xs text-muted-foreground">
+        <nav aria-label="Scanners by topic" className="flex flex-wrap gap-x-5 gap-y-1">
+          <Link href="/tools/rental-lease-scanner" className="hover:text-foreground">
+            Rental lease scanner
+          </Link>
+          <Link href="/tools/freelance-contract-checker" className="hover:text-foreground">
+            Freelance contract checker
+          </Link>
+          <Link href="/tools/job-offer-red-flags" className="hover:text-foreground">
+            Job offer red flags
+          </Link>
+        </nav>
         <p>
           PlainClause is an informational and educational tool only. It is not a law firm and is not
           a substitute for licensed legal counsel.

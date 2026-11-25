@@ -57,3 +57,21 @@ export function getPostForReader(slug: string, canReadPremium: boolean) {
   const source = idx === -1 ? "" : post.content.slice(0, idx);
   return { meta: post.meta, source, gated: true };
 }
+
+/**
+ * Pulls Q&A pairs from a "Frequently asked questions" section ("### Question" + paragraph).
+ * Call it only on reader-visible source so gated text never reaches structured data.
+ */
+export function extractFaqs(source: string): { q: string; a: string }[] {
+  const m = /^##\s+Frequently asked questions\s*$/im.exec(source);
+  if (!m) return [];
+  const section = source.slice(m.index + m[0].length).split(/^##\s/m)[0];
+  return section
+    .split(/^###\s+/m)
+    .slice(1)
+    .map((block) => {
+      const [q, ...rest] = block.split("\n");
+      return { q: q.trim(), a: rest.join(" ").replace(/\s+/g, " ").trim() };
+    })
+    .filter((f) => f.q && f.a);
+}
