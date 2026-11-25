@@ -75,3 +75,15 @@ export function extractFaqs(source: string): { q: string; a: string }[] {
     })
     .filter((f) => f.q && f.a);
 }
+
+/**
+ * The part of a premium post AFTER the paywall marker. Call this ONLY from a
+ * request-time (dynamic) render after verifying the reader is Pro; never from
+ * anything that can be prerendered, or the gated text would land in static output.
+ */
+export function getGatedRemainder(slug: string): string | null {
+  const post = readPost(slug);
+  if (!post || !post.meta.isPremium) return null;
+  const idx = post.content.indexOf(PAYWALL_MARKER);
+  return idx === -1 ? null : post.content.slice(idx + PAYWALL_MARKER.length);
+}

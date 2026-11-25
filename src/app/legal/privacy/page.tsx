@@ -28,7 +28,7 @@ export default function Page() {
         </li>
         <li>
           If you create an account and save a document to your vault, we store the analysis
-          results and metadata (title, risk summary, key dates) so you can access them and receive
+          results, the text you chose to save, and metadata (title, risk summary, key dates) so you can access them and receive
           deadline reminders. You can delete saved documents at any time.
         </li>
         <li>

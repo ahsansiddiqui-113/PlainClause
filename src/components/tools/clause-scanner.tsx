@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +34,13 @@ export function ClauseScanner({ presetText = "" }: { presetText?: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+
+  // The scan is already in sessionStorage; /import moves it into the vault after login.
+  function saveToVault() {
+    router.push(session?.user ? "/import" : "/login?mode=signup&next=/import");
+  }
 
   async function scan() {
     setLoading(true);
@@ -137,6 +146,16 @@ export function ClauseScanner({ presetText = "" }: { presetText?: string }) {
               </div>
             </CardContent>
           </Card>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-accent/50 p-4">
+            <div>
+              <p className="font-medium">Keep this scan</p>
+              <p className="text-sm text-muted-foreground">
+                {session?.user ? "Save it to your vault." : "Create a free account to save it and get deadline reminders."}
+              </p>
+            </div>
+            <Button onClick={saveToVault}>{session?.user ? "Save to Vault" : "Save to Vault (free)"}</Button>
+          </div>
 
           <p className="text-xs text-muted-foreground">
             {result.remaining} free scan{result.remaining === 1 ? "" : "s"} left today.

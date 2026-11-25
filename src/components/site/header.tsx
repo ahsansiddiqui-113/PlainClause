@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Menu, ShieldCheck } from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
+import { UserMenu } from "@/components/site/user-menu";
 
 const links = [
   { href: "/tools/clause-scanner", label: "Clause Scanner" },
@@ -37,6 +38,7 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          <UserMenu />
           <Link href="/tools/clause-scanner" className={buttonClass({ size: "default" })}>
             Scan free
           </Link>
