@@ -9,6 +9,7 @@ import { Button, buttonClass } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MAX_UPLOAD_BYTES } from "@/lib/plans";
 import type { Analysis } from "@/lib/ai/schema";
+import { track } from "@/lib/analytics";
 
 type Level = "LOW" | "MEDIUM" | "HIGH";
 type Result = {
@@ -64,6 +65,7 @@ export function DocumentUploader({ plan, freeScanUsed }: { plan: "free" | "pro";
         return;
       }
       setResult(data);
+      track("document_scanned", { pro: !!data.saved });
     } catch {
       setFailure({ message: "Could not reach the server. Please try again." });
     } finally {

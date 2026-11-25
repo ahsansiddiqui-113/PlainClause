@@ -58,8 +58,10 @@ export default function Page() {
           handled by our payment provider; we never see your full card number.
         </li>
         <li>
-          <strong>Analytics and errors:</strong> we may use privacy-conscious product analytics and
-          error logging to fix bugs and improve the tools.
+          <strong>Analytics and errors:</strong> we use cookieless product analytics (page views and
+          a few feature events such as "scan completed"; no cookies, no session recordings, no
+          typed text) and error monitoring that records the error and the page it happened on. Neither
+          receives your contract text, cookies or request contents.
         </li>
         <li>
           <strong>Advertising cookies:</strong> free public pages may show ads. Ads and

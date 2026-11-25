@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { Analysis } from "@/lib/ai/schema";
+import { track } from "@/lib/analytics";
 
 const MAX = 600;
 const EXAMPLE =
@@ -39,6 +40,7 @@ export function ClauseScanner({ presetText = "" }: { presetText?: string }) {
 
   // The scan is already in sessionStorage; /import moves it into the vault after login.
   function saveToVault() {
+    track("save_to_vault_clicked", { signedIn: !!session?.user });
     router.push(session?.user ? "/import" : "/login?mode=signup&next=/import");
   }
 
@@ -54,6 +56,7 @@ export function ClauseScanner({ presetText = "" }: { presetText?: string }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Something went wrong.");
       setResult(data);
+      track("scan_completed", { mode: "snippet", risk: String(data.riskLevel ?? "") });
       try {
         sessionStorage.setItem("pc:lastScan", JSON.stringify({ text, result: data }));
       } catch {}

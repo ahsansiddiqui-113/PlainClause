@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
+import { track } from "@/lib/analytics";
 
 type Props = {
   plan: "monthly" | "annual";
@@ -34,6 +35,7 @@ export function CheckoutButton({ plan, signedIn, alreadyPro, featured, label }: 
   }
 
   async function go() {
+    track("checkout_started", { plan });
     setBusy(true);
     setError(null);
     try {

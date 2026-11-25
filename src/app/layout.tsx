@@ -5,6 +5,7 @@ import "./globals.css";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { SiteFooter, SiteHeader } from "@/components/site/header";
 import { AdScriptLoader } from "@/components/ads/ad-script-loader";
+import { Analytics } from "@/components/analytics/analytics";
 import { ConsentBanner } from "@/components/ads/consent-banner";
 
 const geistSans = Geist({
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Client-only ad gating reads the URL and session, so it streams in behind Suspense. */}
         <Suspense fallback={null}>
           <AdScriptLoader />
+          <Analytics />
         </Suspense>
         <ConsentBanner />
       </body>
