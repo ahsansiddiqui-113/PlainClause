@@ -4,7 +4,7 @@ import { and, desc, eq, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { scannedDocuments, users } from "@/db/schema";
 import { FREE_FULL_DOC_SCANS } from "@/lib/plans";
-import type { Analysis } from "@/lib/ai/schema";
+import { analysisSchema, type Analysis } from "@/lib/ai/schema";
 import { formatISO, parseDate } from "@/lib/calculators";
 
 export function hashSource(text: string): string {
@@ -127,4 +127,65 @@ export async function refundFreeDocScan(userId: string) {
     .update(users)
     .set({ fullDocScansUsed: sql`greatest(${users.fullDocScansUsed} - 1, 0)` })
     .where(eq(users.id, userId));
+}
+
+export type StoredDocument = {
+  id: string;
+  title: string;
+  docType: string;
+  riskScore: number | null;
+  renewalDate: string | null;
+  noticeDeadlineDate: string | null;
+  createdAt: Date;
+  analysis: Analysis | null;
+  sourceText: string | null;
+  fileName: string | null;
+  pagesRead: number | null;
+  totalPages: number | null;
+};
+
+function hydrate(row: typeof scannedDocuments.$inferSelect): StoredDocument {
+  const json = (row.summaryJson ?? {}) as Record<string, unknown>;
+  const parsed = analysisSchema.safeParse(json.analysis);
+  return {
+    id: row.id,
+    title: row.title,
+    docType: row.docType,
+    riskScore: row.riskScore,
+    renewalDate: row.renewalDate,
+    noticeDeadlineDate: row.noticeDeadlineDate,
+    createdAt: row.createdAt,
+    analysis: parsed.success ? parsed.data : null,
+    sourceText: typeof json.sourceText === "string" ? json.sourceText : null,
+    fileName: typeof json.fileName === "string" ? json.fileName : null,
+    pagesRead: typeof json.pagesRead === "number" ? json.pagesRead : null,
+    totalPages: typeof json.totalPages === "number" ? json.totalPages : null,
+  };
+}
+
+/** Always scoped to the owner: a document id alone never grants access. */
+export async function getDocument(userId: string, id: string): Promise<StoredDocument | null> {
+  const [row] = await db
+    .select()
+    .from(scannedDocuments)
+    .where(and(eq(scannedDocuments.id, id), eq(scannedDocuments.userId, userId)))
+    .limit(1);
+  return row ? hydrate(row) : null;
+}
+
+export async function deleteDocument(userId: string, id: string): Promise<boolean> {
+  const rows = await db
+    .delete(scannedDocuments)
+    .where(and(eq(scannedDocuments.id, id), eq(scannedDocuments.userId, userId)))
+    .returning({ id: scannedDocuments.id });
+  return rows.length > 0;
+}
+
+export async function listDocumentsFull(userId: string): Promise<StoredDocument[]> {
+  const rows = await db
+    .select()
+    .from(scannedDocuments)
+    .where(eq(scannedDocuments.userId, userId))
+    .orderBy(desc(scannedDocuments.createdAt));
+  return rows.map(hydrate);
 }
