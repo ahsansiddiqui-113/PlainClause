@@ -6,7 +6,6 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { subscriptions } from "@/db/schema";
 import { buttonClass } from "@/components/ui/button";
-import { isEntitled } from "@/lib/billing";
 import { getCurrentUser } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -17,7 +16,8 @@ export const metadata: Metadata = {
 const fmt = (d: Date | null) =>
   d ? d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : null;
 
-async function BillingContent() {
+async function BillingContent({ searchParams }: { searchParams: Promise<{ portal?: string }> }) {
+  const portalUnavailable = (await searchParams).portal === "unavailable";
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/dashboard/billing");
 
@@ -29,7 +29,8 @@ async function BillingContent() {
     .limit(1);
 
   const isPro = user.plan === "pro";
-  const cancelled = sub?.status === "cancelled" && isEntitled(sub.status, sub.endsAt);
+  // Cancelled-but-paid: Polar keeps status active (or canceled) with an end date until the period runs out.
+  const cancelled = isPro && !!sub?.endsAt; // an end date on a still-Pro subscription means it was cancelled
   const pastDue = sub?.status === "past_due";
 
   return (
@@ -80,8 +81,9 @@ async function BillingContent() {
         )}
 
         <div className="mt-8 flex flex-wrap gap-3">
-          {isPro && sub?.portalUrl ? (
-            <a href={sub.portalUrl} target="_blank" rel="noopener noreferrer" className={buttonClass({ size: "lg" })}>
+          {isPro && sub ? (
+            // Plain anchor: this route mints a short-lived portal link and redirects off-site.
+            <a href="/api/billing/portal" className={buttonClass({ size: "lg" })}>
               Manage subscription
             </a>
           ) : null}
@@ -91,9 +93,9 @@ async function BillingContent() {
             </Link>
           )}
         </div>
-        {isPro && !sub?.portalUrl && (
-          <p className="mt-4 text-base text-muted-foreground">
-            To change or cancel your plan, use the link in your receipt email.
+        {portalUnavailable && (
+          <p role="alert" className="mt-4 text-base text-destructive">
+            The billing portal isn&apos;t available right now. Please try again, or use the link in your receipt email.
           </p>
         )}
       </div>
@@ -101,11 +103,11 @@ async function BillingContent() {
   );
 }
 
-export default function BillingPage() {
+export default function BillingPage({ searchParams }: { searchParams: Promise<{ portal?: string }> }) {
   return (
     <main className="mx-auto w-full max-w-[96rem] px-5 py-12 sm:px-8 lg:px-14 lg:py-16">
       <Suspense fallback={<div className="h-72 max-w-2xl animate-pulse rounded-3xl bg-muted/60" aria-hidden />}>
-        <BillingContent />
+        <BillingContent searchParams={searchParams} />
       </Suspense>
     </main>
   );

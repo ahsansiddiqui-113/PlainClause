@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { buildAlertEmail, daysUntil, tightestThreshold } from "@/lib/alerts";
-import { isEntitled, verifySignature } from "@/lib/billing";
+import { isEntitled, verifyWebhook } from "@/lib/billing";
 import {
   decodeItems,
   depositSummary,
@@ -89,23 +89,41 @@ describe("billing", () => {
     const future = new Date("2027-01-01T00:00:00Z");
     const past = new Date("2026-11-01T00:00:00Z");
     expect(isEntitled("active", null, now)).toBe(true);
-    expect(isEntitled("on_trial", null, now)).toBe(true);
+    expect(isEntitled("trialing", null, now)).toBe(true);
     expect(isEntitled("past_due", null, now)).toBe(true);
-    expect(isEntitled("cancelled", future, now)).toBe(true);
-    expect(isEntitled("cancelled", past, now)).toBe(false);
-    expect(isEntitled("cancelled", null, now)).toBe(false);
-    for (const s of ["paused", "unpaid", "expired", "weird"]) expect(isEntitled(s, future, now)).toBe(false);
+    expect(isEntitled("canceled", future, now)).toBe(true);
+    expect(isEntitled("canceled", past, now)).toBe(false);
+    expect(isEntitled("canceled", null, now)).toBe(false);
+    for (const s of ["paused", "unpaid", "incomplete", "trial_ended", "weird"]) expect(isEntitled(s, future, now)).toBe(false);
   });
-  it("verifies HMAC signatures in constant time and rejects junk", () => {
-    const body = '{"a":1}';
-    const sig = createHmac("sha256", "s3cret").update(body).digest("hex");
-    expect(verifySignature(body, sig, "s3cret")).toBe(true);
-    expect(verifySignature(body + " ", sig, "s3cret")).toBe(false);
-    expect(verifySignature(body, sig, "other")).toBe(false);
-    expect(verifySignature(body, null, "s3cret")).toBe(false);
-    expect(verifySignature(body, "zz", "s3cret")).toBe(false);
-    expect(verifySignature(body, sig.slice(0, 10), "s3cret")).toBe(false);
-    expect(verifySignature(body, sig, "")).toBe(false);
+  it("verifies Standard Webhooks signatures (replay-guarded, rotation-aware)", () => {
+    const body = '{"type":"subscription.active"}';
+    const secret = "whsec_" + Buffer.from("super-secret-key-bytes").toString("base64");
+    const now = 1_800_000_000_000;
+    const ts = String(Math.floor(now / 1000));
+    const id = "evt_1";
+    const sign = (key: Buffer, b = body, i = id, t = ts) =>
+      "v1," + createHmac("sha256", key).update(`${i}.${t}.${b}`).digest("base64");
+    const key = Buffer.from("super-secret-key-bytes");
+    const h = (signature: string | null, o: { id?: string | null; timestamp?: string | null } = {}) => ({
+      id: o.id === undefined ? id : o.id,
+      timestamp: o.timestamp === undefined ? ts : o.timestamp,
+      signature,
+    });
+    expect(verifyWebhook(body, h(sign(key)), secret, now)).toBe(true);
+    expect(verifyWebhook(body, h("v1,AAAA " + sign(key)), secret, now)).toBe(true); // rotated: any match
+    // legacy Polar scheme: key is the raw secret string
+    expect(verifyWebhook(body, h(sign(Buffer.from(secret, "utf8"))), secret, now)).toBe(true);
+    expect(verifyWebhook(body + " ", h(sign(key)), secret, now)).toBe(false); // tampered body
+    expect(verifyWebhook(body, h(sign(key)), "whsec_" + Buffer.from("other").toString("base64"), now)).toBe(false);
+    expect(verifyWebhook(body, h(sign(key), { id: "evt_2" }), secret, now)).toBe(false); // id is signed
+    expect(verifyWebhook(body, h(sign(key)), secret, now + 10 * 60 * 1000)).toBe(false); // replay: too old
+    expect(verifyWebhook(body, h(sign(key)), secret, now - 10 * 60 * 1000)).toBe(false); // too far in future
+    expect(verifyWebhook(body, h(null), secret, now)).toBe(false);
+    expect(verifyWebhook(body, h("garbage"), secret, now)).toBe(false);
+    expect(verifyWebhook(body, h(sign(key), { id: null }), secret, now)).toBe(false);
+    expect(verifyWebhook(body, h(sign(key), { timestamp: "abc" }), secret, now)).toBe(false);
+    expect(verifyWebhook(body, h(sign(key)), "", now)).toBe(false);
   });
 });
 

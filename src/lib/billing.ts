@@ -1,9 +1,10 @@
 import "server-only";
-import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { subscriptions, users, webhookEvents } from "@/db/schema";
 
+// Billing provider: Polar (merchant of record; pays out to Pakistani bank accounts via Stripe Connect).
 export type BillingInterval = "monthly" | "annual";
 
 export const PRICES = {
@@ -11,84 +12,99 @@ export const PRICES = {
   annual: { amount: 59, label: "$59", per: "year" },
 } as const;
 
-/** Lemon Squeezy configuration. Checkout is disabled (503) until all of these are set. */
+/** Polar configuration. Checkout is disabled (503) until all of these are set. */
 export function billingConfig() {
-  const apiKey = process.env.LEMONSQUEEZY_API_KEY;
-  const storeId = process.env.LEMONSQUEEZY_STORE_ID;
-  const monthly = process.env.LEMONSQUEEZY_VARIANT_MONTHLY;
-  const annual = process.env.LEMONSQUEEZY_VARIANT_ANNUAL;
-  if (!apiKey || !storeId || !monthly || !annual) return null;
+  const token = process.env.POLAR_ACCESS_TOKEN;
+  const monthly = process.env.POLAR_PRODUCT_MONTHLY;
+  const annual = process.env.POLAR_PRODUCT_ANNUAL;
+  if (!token || !monthly || !annual) return null;
+  const sandbox = (process.env.POLAR_SERVER ?? "sandbox") !== "production";
   return {
-    apiKey,
-    storeId,
-    variants: { monthly, annual } as Record<BillingInterval, string>,
-    testMode: process.env.LEMONSQUEEZY_TEST_MODE === "true",
+    token,
+    products: { monthly, annual } as Record<BillingInterval, string>,
+    apiBase: sandbox ? "https://sandbox-api.polar.sh/v1" : "https://api.polar.sh/v1",
   };
 }
 
-/** Constant-time check of Lemon Squeezy's `X-Signature` (hex HMAC-SHA256 of the raw body). */
-export function verifySignature(rawBody: string, signature: string | null, secret: string): boolean {
-  if (!signature || !secret) return false;
-  const expected = createHmac("sha256", secret).update(rawBody, "utf8").digest();
-  let given: Buffer;
-  try {
-    given = Buffer.from(signature.trim(), "hex");
-  } catch {
-    return false;
+const TOLERANCE_SECONDS = 5 * 60;
+
+/**
+ * Verifies a Standard Webhooks signature (what Polar sends): headers `webhook-id`,
+ * `webhook-timestamp`, `webhook-signature` ("v1,<base64 hmac>", space separated for key rotation).
+ * Signed content is `${id}.${timestamp}.${rawBody}`. Secrets created before Sep 2026 used Polar's
+ * legacy scheme (key = raw secret string), so both key forms are tried.
+ */
+export function verifyWebhook(
+  rawBody: string,
+  h: { id: string | null; timestamp: string | null; signature: string | null },
+  secret: string,
+  nowMs = Date.now(),
+): boolean {
+  if (!h.id || !h.timestamp || !h.signature || !secret) return false;
+  const ts = Number(h.timestamp);
+  if (!Number.isFinite(ts) || Math.abs(nowMs / 1000 - ts) > TOLERANCE_SECONDS) return false; // replay guard
+  const signed = `${h.id}.${h.timestamp}.${rawBody}`;
+  const keys = [Buffer.from(secret.replace(/^whsec_/, ""), "base64"), Buffer.from(secret, "utf8")];
+  const given = h.signature
+    .split(" ")
+    .map((p) => p.trim())
+    .filter((p) => p.startsWith("v1,"))
+    .map((p) => Buffer.from(p.slice(3), "base64"));
+  for (const key of keys) {
+    const expected = createHmac("sha256", key).update(signed, "utf8").digest();
+    if (given.some((g) => g.length === expected.length && timingSafeEqual(g, expected))) return true;
   }
-  return given.length === expected.length && timingSafeEqual(given, expected);
+  return false;
 }
 
 /**
  * Does a subscription currently grant Pro?
  * - active / trialing: yes. past_due: yes (payment retries run; we don't cut access on one failed card).
- * - cancelled: yes until the paid period ends (`endsAt`).
- * - paused / unpaid / expired: no.
+ * - canceled: yes until the paid period ends (`endsAt`).
+ * - everything else (unpaid, paused, incomplete, trial_ended...): no.
  */
 export function isEntitled(status: string, endsAt: Date | null, now = new Date()): boolean {
   switch (status) {
     case "active":
-    case "on_trial":
+    case "trialing":
     case "past_due":
       return true;
-    case "cancelled":
+    case "canceled":
       return !!endsAt && endsAt.getTime() > now.getTime();
     default:
       return false;
   }
 }
 
-type LsPayload = {
-  meta?: { event_name?: string; custom_data?: { user_id?: unknown } };
-  data?: {
-    id?: string | number;
-    type?: string;
-    attributes?: {
-      status?: string;
-      renews_at?: string | null;
-      ends_at?: string | null;
-      updated_at?: string | null;
-      variant_id?: number | string;
-      urls?: { customer_portal?: string | null };
-    };
-  };
+type PolarSubscription = {
+  id?: string;
+  status?: string;
+  current_period_end?: string | null;
+  cancel_at_period_end?: boolean;
+  ends_at?: string | null;
+  modified_at?: string | null;
+  recurring_interval?: string | null;
+  product_id?: string | null;
+  metadata?: { user_id?: unknown } | null;
+  customer?: { external_id?: string | null } | null;
 };
+type PolarEvent = { type?: string; timestamp?: string; data?: PolarSubscription };
 
 export type WebhookResult =
   | { ok: true; outcome: "processed" | "duplicate" | "ignored"; detail?: string }
   | { ok: false; status: number; error: string };
 
 const HANDLED = new Set([
-  "subscription_created",
-  "subscription_updated",
-  "subscription_cancelled",
-  "subscription_resumed",
-  "subscription_expired",
-  "subscription_paused",
-  "subscription_unpaused",
-  "subscription_payment_failed",
-  "subscription_payment_success",
-  "subscription_payment_recovered",
+  "subscription.created",
+  "subscription.active",
+  "subscription.updated",
+  "subscription.canceled",
+  "subscription.uncanceled",
+  "subscription.revoked",
+  "subscription.past_due",
+  "subscription.paused",
+  "subscription.resumed",
+  "subscription.cycled",
 ]);
 
 function toDate(v: string | null | undefined) {
@@ -106,56 +122,59 @@ export async function syncUserPlan(userId: string, now = new Date()) {
 }
 
 /**
- * Applies a verified webhook body. Idempotent: the event id is a hash of the raw body
- * (providers redeliver identical bytes on retry), recorded only AFTER successful handling so a
- * failed attempt is retried. Handlers are upserts, so a concurrent duplicate is harmless.
+ * Applies a verified webhook. Idempotent: `eventId` is Polar's `webhook-id` header (identical on
+ * retries), recorded only AFTER successful handling so a failed attempt is retried. Handlers are
+ * upserts, so a concurrent duplicate is harmless.
  */
-export async function handleBillingWebhook(rawBody: string): Promise<WebhookResult> {
-  let payload: LsPayload;
+export async function handleBillingWebhook(rawBody: string, eventId: string): Promise<WebhookResult> {
+  let event: PolarEvent;
   try {
-    payload = JSON.parse(rawBody);
+    event = JSON.parse(rawBody);
   } catch {
     return { ok: false, status: 400, error: "Invalid JSON" };
   }
-  const eventName = payload.meta?.event_name ?? "";
-  const eventId = createHash("sha256").update(rawBody).digest("hex");
-
+  const eventName = event.type ?? "";
   if (!HANDLED.has(eventName)) return { ok: true, outcome: "ignored", detail: eventName };
 
   const [seen] = await db.select().from(webhookEvents).where(eq(webhookEvents.eventId, eventId)).limit(1);
   if (seen) return { ok: true, outcome: "duplicate" };
 
-  const attrs = payload.data?.attributes;
-  const subId = payload.data?.id != null ? String(payload.data.id) : "";
-  if (payload.data?.type !== "subscriptions" || !subId || !attrs?.status) {
-    return { ok: false, status: 400, error: "Malformed subscription payload" };
-  }
+  const sub = event.data;
+  const subId = sub?.id ? String(sub.id) : "";
+  if (!sub || !subId || !sub.status) return { ok: false, status: 400, error: "Malformed subscription payload" };
 
-  // Who owns it? custom_data.user_id (set at checkout), else a subscription we already know.
-  let userId = typeof payload.meta?.custom_data?.user_id === "string" ? payload.meta.custom_data.user_id : null;
+  // Who owns it? customer.external_id (our user id, set at checkout), else metadata.user_id,
+  // else a subscription we already know (an existing owner always wins over payload claims).
+  let userId =
+    sub.customer?.external_id ?? (typeof sub.metadata?.user_id === "string" ? sub.metadata.user_id : null);
   const [existing] = await db.select().from(subscriptions).where(eq(subscriptions.providerSubId, subId)).limit(1);
   if (existing) userId = existing.userId;
   if (!userId) return { ok: true, outcome: "ignored", detail: "no user" };
   const [owner] = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
   if (!owner) return { ok: true, outcome: "ignored", detail: "unknown user" };
 
-  const updatedAt = toDate(attrs.updated_at);
+  const updatedAt = toDate(sub.modified_at) ?? toDate(event.timestamp);
   const stale = existing?.providerUpdatedAt && updatedAt && updatedAt < existing.providerUpdatedAt;
   if (!stale) {
-    const variant = String(attrs.variant_id ?? "");
+    const periodEnd = toDate(sub.current_period_end);
+    // Access end: an explicit ends_at, or the period end when cancellation is scheduled.
+    const endsAt = toDate(sub.ends_at) ?? (sub.cancel_at_period_end ? periodEnd : null);
     const interval: BillingInterval | null =
-      variant && variant === process.env.LEMONSQUEEZY_VARIANT_ANNUAL
+      sub.recurring_interval === "year"
         ? "annual"
-        : variant && variant === process.env.LEMONSQUEEZY_VARIANT_MONTHLY
+        : sub.recurring_interval === "month"
           ? "monthly"
-          : (existing?.interval as BillingInterval | null) ?? null;
+          : sub.product_id && sub.product_id === process.env.POLAR_PRODUCT_ANNUAL
+            ? "annual"
+            : sub.product_id && sub.product_id === process.env.POLAR_PRODUCT_MONTHLY
+              ? "monthly"
+              : ((existing?.interval as BillingInterval | null) ?? null);
     const row = {
       userId,
-      status: attrs.status,
-      currentPeriodEnd: toDate(attrs.renews_at) ?? toDate(attrs.ends_at),
-      endsAt: toDate(attrs.ends_at),
+      status: sub.status,
+      currentPeriodEnd: periodEnd,
+      endsAt,
       interval,
-      portalUrl: attrs.urls?.customer_portal ?? existing?.portalUrl ?? null,
       providerUpdatedAt: updatedAt ?? existing?.providerUpdatedAt ?? null,
     };
     await db

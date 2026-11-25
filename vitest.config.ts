@@ -17,8 +17,8 @@ export default defineConfig({
       // In-memory Postgres so modules that import the db client load without a real database.
       DATABASE_URL: "pglite://memory://",
       NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
-      LEMONSQUEEZY_VARIANT_MONTHLY: "111",
-      LEMONSQUEEZY_VARIANT_ANNUAL: "222",
+      POLAR_PRODUCT_MONTHLY: "prod_month",
+      POLAR_PRODUCT_ANNUAL: "prod_year",
     },
   },
 });

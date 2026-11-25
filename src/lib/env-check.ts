@@ -9,7 +9,8 @@ export function logEnvWarnings() {
   if (!v.GOOGLE_GENERATIVE_AI_API_KEY) warn.push("GOOGLE_GENERATIVE_AI_API_KEY missing: scanning will fail");
   if (!v.NEXT_PUBLIC_SITE_URL || v.NEXT_PUBLIC_SITE_URL.includes("localhost")) warn.push("NEXT_PUBLIC_SITE_URL is unset/localhost: canonicals, sitemap and emails will be wrong");
   if (!v.BETTER_AUTH_URL || v.BETTER_AUTH_URL.includes("localhost")) warn.push("BETTER_AUTH_URL is unset/localhost: auth redirects and CSRF origin checks will fail");
-  if (!v.LEMONSQUEEZY_API_KEY || !v.LEMONSQUEEZY_WEBHOOK_SECRET) warn.push("Lemon Squeezy not configured: checkout disabled");
+  if (!v.POLAR_ACCESS_TOKEN || !v.POLAR_WEBHOOK_SECRET || !v.POLAR_PRODUCT_MONTHLY || !v.POLAR_PRODUCT_ANNUAL) warn.push("Polar not configured: checkout disabled");
+  if (v.POLAR_SERVER !== "production") warn.push("POLAR_SERVER is not production: payments go to the Polar sandbox");
   if (!v.RESEND_API_KEY || !v.EMAIL_FROM) warn.push("Resend not configured: no verification emails or deadline alerts");
   if (!v.CRON_SECRET) warn.push("CRON_SECRET missing: deadline-alert cron will return 503");
   for (const w of warn) console.warn(`[config] ${w}`);

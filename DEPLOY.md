@@ -5,7 +5,7 @@ Do these in order. Every variable is documented in `.env.example`.
 ## 1. Accounts
 - **Neon**: create a project, copy the pooled connection string into `DATABASE_URL`, then run `npm run db:push` once against it.
 - **Google AI Studio**: paid-tier key in `GOOGLE_GENERATIVE_AI_API_KEY` (the free tier may train on inputs, which contradicts the privacy page).
-- **Lemon Squeezy**: store, two subscription variants ($8/mo, $59/yr), API key, webhook to `https://YOURDOMAIN/api/webhooks/billing` with the `subscription_*` events. Start in test mode (`LEMONSQUEEZY_TEST_MODE=true`).
+- **Polar** (merchant of record; Pakistani bank payouts go through Stripe Connect, so connect a PKR bank account in Polar > Finance > Account): start in the sandbox (sandbox.polar.sh), create two recurring products ($8/mo, $59/yr), an Organization Access Token, and a webhook to `https://YOURDOMAIN/api/webhooks/billing` with all `subscription.*` events. Put the values in the `POLAR_*` variables.
 - **Resend**: verify your sending domain, then set `RESEND_API_KEY` and `EMAIL_FROM`.
 - Optional: **Sentry** (`SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`), **PostHog** (`NEXT_PUBLIC_POSTHOG_KEY`), **Google OAuth** (redirect URI `https://YOURDOMAIN/api/auth/callback/google`).
 
@@ -21,12 +21,12 @@ Do these in order. Every variable is documented in `.env.example`.
 ## 3. Smoke test (production)
 - `GET /api/health` returns `{"ok":true}`.
 - Sign up (verification email arrives), scan a clause, upload a PDF, save to vault.
-- Test-mode purchase on `/pricing`: the account flips to Pro and exports unlock; cancel from the billing page.
+- Sandbox purchase on `/pricing` (card 4242 4242 4242 4242): the account flips to Pro and exports unlock; cancel from the billing page.
 - `/robots.txt`, `/sitemap.xml` and `/ads.txt` use your real domain.
 - Trigger the cron manually: `curl -H "Authorization: Bearer $CRON_SECRET" https://YOURDOMAIN/api/cron/deadline-alerts`.
 
 ## 4. Launch
-- Switch Lemon Squeezy to live mode: new live keys, variant ids and webhook secret.
+- Switch Polar to production: new organization and token at polar.sh, new product ids and webhook secret, and set `POLAR_SERVER=production`.
 - Search Console: add the property, submit `/sitemap.xml`, request indexing for the home page and the top tools.
 - Set up an uptime monitor on `/api/health`.
 - AdSense (after you have traffic and content): apply, then set `NEXT_PUBLIC_ADSENSE_CLIENT` and slot ids and redeploy.

@@ -21,36 +21,24 @@ export async function POST(req: Request) {
   }
 
   const site = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
-  const res = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
+  const res = await fetch(`${cfg.apiBase}/checkouts/`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${cfg.apiKey}`,
-      Accept: "application/vnd.api+json",
-      "Content-Type": "application/vnd.api+json",
-    },
+    headers: { Authorization: `Bearer ${cfg.token}`, "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({
-      data: {
-        type: "checkouts",
-        attributes: {
-          test_mode: cfg.testMode,
-          // user_id round-trips to the webhook as meta.custom_data.user_id
-          checkout_data: { email: user.email, custom: { user_id: user.id } },
-          product_options: { redirect_url: `${site}/dashboard?upgraded=1` },
-        },
-        relationships: {
-          store: { data: { type: "stores", id: cfg.storeId } },
-          variant: { data: { type: "variants", id: cfg.variants[parsed.data.plan] } },
-        },
-      },
+      products: [cfg.products[parsed.data.plan]],
+      // Becomes customer.external_id in every subscription webhook: how we map payments to users.
+      external_customer_id: user.id,
+      customer_email: user.email,
+      metadata: { user_id: user.id },
+      success_url: `${site}/dashboard?upgraded=1`,
     }),
   }).catch(() => null);
 
   if (!res || !res.ok) {
-    if (res) console.error("lemonsqueezy checkout failed", res.status, await res.text().catch(() => ""));
+    if (res) console.error("polar checkout failed", res.status, await res.text().catch(() => ""));
     return NextResponse.json({ error: "Couldn't start checkout. Please try again." }, { status: 502 });
   }
-  const json = (await res.json()) as { data?: { attributes?: { url?: string } } };
-  const url = json.data?.attributes?.url;
-  if (!url) return NextResponse.json({ error: "Couldn't start checkout." }, { status: 502 });
-  return NextResponse.json({ url });
+  const json = (await res.json()) as { url?: string };
+  if (!json.url) return NextResponse.json({ error: "Couldn't start checkout." }, { status: 502 });
+  return NextResponse.json({ url: json.url });
 }
