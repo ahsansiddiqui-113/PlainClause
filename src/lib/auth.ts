@@ -26,6 +26,8 @@ export const auth = betterAuth({
     additionalFields: {
       // Set only by the billing webhook (Day 13); never by user input.
       plan: { type: "string", defaultValue: "free", input: false },
+      // Free full-document scans used (server-managed).
+      fullDocScansUsed: { type: "number", defaultValue: 0, input: false },
     },
   },
   emailAndPassword: {

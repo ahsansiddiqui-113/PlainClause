@@ -1,8 +1,9 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { scannedDocuments } from "@/db/schema";
+import { scannedDocuments, users } from "@/db/schema";
+import { FREE_FULL_DOC_SCANS } from "@/lib/plans";
 import type { Analysis } from "@/lib/ai/schema";
 import { formatISO, parseDate } from "@/lib/calculators";
 
@@ -83,4 +84,47 @@ export async function listDocuments(userId: string) {
     .from(scannedDocuments)
     .where(eq(scannedDocuments.userId, userId))
     .orderBy(desc(scannedDocuments.createdAt));
+}
+
+/** Saves a full-document (PDF/DOCX) analysis. The file itself is never stored. */
+export async function saveFullDocument(
+  userId: string,
+  meta: { title: string; fileName: string; pagesRead: number | null; totalPages: number | null },
+  analysis: Analysis,
+) {
+  const dates = keyDates(analysis);
+  const [row] = await db
+    .insert(scannedDocuments)
+    .values({
+      userId,
+      title: meta.title,
+      docType: "document",
+      riskScore: riskScoreFor(analysis),
+      summaryJson: { analysis, fileName: meta.fileName, pagesRead: meta.pagesRead, totalPages: meta.totalPages },
+      renewalDate: dates.renewalDate,
+      noticeDeadlineDate: dates.noticeDeadlineDate,
+    })
+    .returning({ id: scannedDocuments.id });
+  return row.id;
+}
+
+/**
+ * Atomically claims one free full-document scan. A single conditional UPDATE means two
+ * parallel uploads cannot both succeed. Returns false when the allowance is used up.
+ */
+export async function reserveFreeDocScan(userId: string): Promise<boolean> {
+  const rows = await db
+    .update(users)
+    .set({ fullDocScansUsed: sql`${users.fullDocScansUsed} + 1` })
+    .where(and(eq(users.id, userId), lt(users.fullDocScansUsed, FREE_FULL_DOC_SCANS)))
+    .returning({ used: users.fullDocScansUsed });
+  return rows.length > 0;
+}
+
+/** Gives the scan back when the analysis itself failed (not the user's fault). */
+export async function refundFreeDocScan(userId: string) {
+  await db
+    .update(users)
+    .set({ fullDocScansUsed: sql`greatest(${users.fullDocScansUsed} - 1, 0)` })
+    .where(eq(users.id, userId));
 }

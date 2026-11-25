@@ -23,7 +23,11 @@ export async function POST(req: Request) {
     limit = await checkRateLimit(`scan:ip:${ip}`, DAILY_LIMIT);
   } catch (err) {
     console.error("rate limit failure", err);
-    return NextResponse.json({ error: "Service temporarily unavailable." }, { status: 503 });
+    const hint =
+      process.env.NODE_ENV === "production"
+        ? "Service temporarily unavailable."
+        : "Database unreachable (dev hint): set a real DATABASE_URL in .env, or use DATABASE_URL=pglite://.pglite for a local database, then restart `npm run dev`.";
+    return NextResponse.json({ error: hint }, { status: 503 });
   }
   if (!limit.allowed) {
     return NextResponse.json(

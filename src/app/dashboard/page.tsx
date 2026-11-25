@@ -32,9 +32,14 @@ async function DashboardContent({ searchParams }: { searchParams: Promise<{ save
             Signed in as {user.email} · {user.plan === "pro" ? "Pro plan" : "Free plan"}
           </p>
         </div>
-        <Link href="/tools/clause-scanner" className="text-sm font-medium text-primary hover:underline">
-          Scan another clause
-        </Link>
+        <div className="flex gap-4 text-sm font-medium">
+          <Link href="/dashboard/upload" className="text-primary hover:underline">
+            Scan a document
+          </Link>
+          <Link href="/tools/clause-scanner" className="text-primary hover:underline">
+            Scan a clause
+          </Link>
+        </div>
       </header>
 
       {saved && (

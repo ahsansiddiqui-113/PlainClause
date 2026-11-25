@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "full_doc_scans_used" integer DEFAULT 0 NOT NULL;

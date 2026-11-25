@@ -23,6 +23,8 @@ export const users = pgTable("users", {
   plan: planEnum("plan").notNull().default("free"),
   freeScansUsedToday: integer("free_scans_used_today").notNull().default(0),
   lastScanDate: date("last_scan_date"),
+  // Lifetime count of full-document (PDF/DOCX) scans used on the free plan.
+  fullDocScansUsed: integer("full_doc_scans_used").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

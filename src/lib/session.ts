@@ -7,6 +7,7 @@ export type CurrentUser = {
   email: string;
   name: string;
   plan: "free" | "pro";
+  fullDocScansUsed: number;
 } | null;
 
 /**
@@ -19,5 +20,6 @@ export async function getCurrentUser(): Promise<CurrentUser> {
   if (!session) return null;
   const { id, email, name } = session.user;
   const plan = (session.user as { plan?: string }).plan === "pro" ? "pro" : "free";
-  return { id, email, name, plan };
+  const used = Number((session.user as { fullDocScansUsed?: number }).fullDocScansUsed ?? 0);
+  return { id, email, name, plan, fullDocScansUsed: used };
 }

@@ -32,6 +32,11 @@ export default function Page() {
           deadline reminders. You can delete saved documents at any time.
         </li>
         <li>
+          <strong>Uploaded PDF and Word files are processed in memory and are not stored.</strong> The
+          extracted text is sent to the AI provider to produce your analysis. For Pro users we keep
+          only the analysis and the file name.
+        </li>
+        <li>
           We do not sell your contract text, and we do not use it to train public AI models. We
           use AI providers under terms that do not allow them to train on API data; we review
           those terms when they change.

@@ -135,7 +135,7 @@
 .prose blockquote p:last-of-type::after {
   content: none;
 }
-.prose blockquote {
+.prose blockquote:not(:where(.not-prose, .not-prose *)) {
   font-style: normal;
   font-weight: 400;
   border-inline-start-color: var(--primary);
@@ -143,7 +143,7 @@
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
   padding: 0.5rem 1.1rem;
 }
-.prose a {
+.prose a:not(:where(.not-prose, .not-prose *)) {
   color: var(--primary);
   text-decoration-color: color-mix(in oklab, var(--primary) 40%, transparent);
   text-underline-offset: 3px;
