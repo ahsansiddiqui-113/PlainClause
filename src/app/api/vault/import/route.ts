@@ -39,6 +39,9 @@ export async function POST(req: Request) {
 
   try {
     const analysis = await analyzeClauseOrDoc(text, "snippet");
+    if (analysis.isContractText === false) {
+      return NextResponse.json({ error: "That text does not look like a contract, so it was not saved." }, { status: 422 });
+    }
     const id = await saveSnippetDocument(user.id, text, analysis);
     return NextResponse.json({ id, duplicate: false }, { status: 201 });
   } catch (err) {

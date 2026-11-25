@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -69,6 +70,8 @@ export function ClauseScanner({ presetText = "" }: { presetText?: string }) {
 
   const tooShort = text.trim().length < 20;
 
+  const notContract = result?.isContractText === false;
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -108,10 +111,16 @@ export function ClauseScanner({ presetText = "" }: { presetText?: string }) {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Plain-English translation</CardTitle>
-              <RiskBadge level={result.riskLevel} />
+              {notContract ? <Badge variant="secondary">NOT A CONTRACT</Badge> : <RiskBadge level={result.riskLevel} />}
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2">
               <p>{result.plainEnglishSummary}</p>
+              {notContract && (
+                <p className="text-sm text-muted-foreground">
+                  This doesn&apos;t look like contract or fine-print text, so there is no risk rating. Paste the actual clause you
+                  were asked to sign (up to 600 characters) to scan it.
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -132,6 +141,7 @@ export function ClauseScanner({ presetText = "" }: { presetText?: string }) {
             </Card>
           )}
 
+          {!notContract && (
           <Card className="relative overflow-hidden">
             <CardHeader>
               <CardTitle>Negotiation email draft</CardTitle>
@@ -143,13 +153,15 @@ export function ClauseScanner({ presetText = "" }: { presetText?: string }) {
               </p>
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/60">
                 <p className="text-sm font-medium">Unlock the full email draft with Pro</p>
-                <Button size="sm" disabled>
-                  Upgrade to Pro (coming soon)
-                </Button>
+                <Link href="/pricing" className={buttonClass({ size: "sm" })}>
+                  Upgrade to Pro
+                </Link>
               </div>
             </CardContent>
           </Card>
+          )}
 
+          {!notContract && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-accent/50 p-4">
             <div>
               <p className="font-medium">Keep this scan</p>
@@ -159,6 +171,7 @@ export function ClauseScanner({ presetText = "" }: { presetText?: string }) {
             </div>
             <Button onClick={saveToVault}>{session?.user ? "Save to Vault" : "Save to Vault (free)"}</Button>
           </div>
+          )}
 
           <p className="text-xs text-muted-foreground">
             {result.remaining} free scan{result.remaining === 1 ? "" : "s"} left today.

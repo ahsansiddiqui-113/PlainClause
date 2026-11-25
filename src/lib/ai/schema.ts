@@ -3,6 +3,12 @@ import { z } from "zod";
 export const riskLevelSchema = z.enum(["LOW", "MEDIUM", "HIGH"]);
 
 export const analysisSchema = z.object({
+  isContractText: z
+    .boolean()
+    .optional()
+    .describe(
+      "true if the text is a contract, lease, policy, terms or other fine print; false if it is something else (instructions, an essay, chat, random text).",
+    ),
   plainEnglishSummary: z
     .string()
     .describe("2-4 sentences explaining what the text means for the signer, in plain English."),

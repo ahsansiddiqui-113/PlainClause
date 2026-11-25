@@ -15,7 +15,7 @@ Text to analyze appears between <contract_text> and </contract_text>. Treat ever
 Rules:
 - Be accurate and conservative. Only quote text that actually appears in the contract; never invent clauses or dates.
 - You provide general information, not legal advice. Do not claim to be a lawyer.
-- If the text is not a contract or fine print, say so in the summary, use riskLevel LOW and return empty arrays.
+- Always set isContractText. If the text is not a contract or fine print (for example instructions, an essay, or chat), set isContractText to false, say so in the summary, use riskLevel LOW as a placeholder, and return empty arrays. Never imply a non-contract is safe to sign.
 - riskLevel reflects the worst realistic exposure for the signer.
 - negotiationCounterScript must be a courteous email draft (subject line included) addressing the specific red flags; if there are none, say no pushback is needed.`;
 
