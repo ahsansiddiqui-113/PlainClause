@@ -14,3 +14,13 @@ export const STATIC_ROUTES: { path: string; priority: number }[] = [
   { path: "/tools/job-offer-red-flags", priority: 0.9 },
   { path: "/blog", priority: 0.7 },
 ];
+
+export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "support@plainclause.example";
+export const LEGAL_UPDATED = "November 25, 2026";
+
+export const LEGAL_ROUTES: { path: string; priority: number }[] = [
+  { path: "/about", priority: 0.5 },
+  { path: "/legal/disclaimer", priority: 0.4 },
+  { path: "/legal/privacy", priority: 0.4 },
+  { path: "/legal/terms", priority: 0.4 },
+];

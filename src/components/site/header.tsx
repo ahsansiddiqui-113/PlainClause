@@ -41,6 +41,20 @@ export function SiteFooter() {
             Job offer red flags
           </Link>
         </nav>
+        <nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-1">
+          <Link href="/about" className="hover:text-foreground">
+            About
+          </Link>
+          <Link href="/legal/disclaimer" className="hover:text-foreground">
+            Disclaimer
+          </Link>
+          <Link href="/legal/privacy" className="hover:text-foreground">
+            Privacy
+          </Link>
+          <Link href="/legal/terms" className="hover:text-foreground">
+            Terms
+          </Link>
+        </nav>
         <p>
           PlainClause is an informational and educational tool only. It is not a law firm and is not
           a substitute for licensed legal counsel.

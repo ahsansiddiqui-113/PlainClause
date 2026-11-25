@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
 import { getAllPosts } from "@/lib/posts";
-import { absoluteUrl, STATIC_ROUTES } from "@/lib/site";
+import { absoluteUrl, LEGAL_ROUTES, STATIC_ROUTES } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const pages = STATIC_ROUTES.map((r) => ({
+  const pages = [...STATIC_ROUTES, ...LEGAL_ROUTES].map((r) => ({
     url: absoluteUrl(r.path),
     changeFrequency: "weekly" as const,
     priority: r.priority,
