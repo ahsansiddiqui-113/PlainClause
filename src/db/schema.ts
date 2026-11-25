@@ -88,6 +88,12 @@ export const subscriptions = pgTable(
     providerSubId: text("provider_sub_id").notNull().unique(),
     status: text("status").notNull(),
     currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+    // When a cancelled subscription stops granting access (cancelled subs stay Pro until then).
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    interval: text("interval"), // 'monthly' | 'annual'
+    portalUrl: text("portal_url"),
+    // Provider-side updated_at, used to ignore out-of-order webhook deliveries.
+    providerUpdatedAt: timestamp("provider_updated_at", { withTimezone: true }),
   },
   (t) => [index("subscriptions_user_idx").on(t.userId)],
 );

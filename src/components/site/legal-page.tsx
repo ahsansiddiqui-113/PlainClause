@@ -7,6 +7,7 @@ const nav = [
   { href: "/legal/disclaimer", label: "Disclaimer" },
   { href: "/legal/privacy", label: "Privacy Policy" },
   { href: "/legal/terms", label: "Terms of Service" },
+  { href: "/legal/refund-policy", label: "Refund Policy" },
 ];
 
 export function LegalPage({

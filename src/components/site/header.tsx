@@ -8,6 +8,7 @@ const links = [
   { href: "/tools/notice-period-calculator", label: "Notice Calculator" },
   { href: "/tools/deposit-deduction-checker", label: "Deposit Checker" },
   { href: "/blog", label: "Guides" },
+  { href: "/pricing", label: "Pricing" },
 ];
 
 export function Logo() {
@@ -85,6 +86,7 @@ const companyLinks = [
   { href: "/legal/disclaimer", label: "Disclaimer" },
   { href: "/legal/privacy", label: "Privacy" },
   { href: "/legal/terms", label: "Terms" },
+  { href: "/legal/refund-policy", label: "Refund policy" },
 ];
 
 function FooterCol({ title, items }: { title: string; items: { href: string; label: string }[] }) {

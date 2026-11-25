@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileDown, LayoutDashboard, UploadCloud } from "lucide-react";
+import { CreditCard, FileDown, LayoutDashboard, UploadCloud } from "lucide-react";
 import { Wrap } from "@/components/site/wrap";
 
 const items = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/upload", label: "Scan a document", icon: UploadCloud },
   { href: "/dashboard/exports", label: "Exports", icon: FileDown },
+  { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
 ];
 
 export function DashboardNav() {

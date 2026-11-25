@@ -15,6 +15,13 @@
       "when": 1795599232465,
       "tag": "0001_wise_starfox",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795605052953,
+      "tag": "0002_tiresome_mauler",
+      "breakpoints": true
     }
   ]
 }
