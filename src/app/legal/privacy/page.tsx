@@ -59,7 +59,7 @@ export default function Page() {
         </li>
         <li>
           <strong>Analytics and errors:</strong> we use cookieless product analytics (page views and
-          a few feature events such as "scan completed"; no cookies, no session recordings, no
+          a few feature events such as &ldquo;scan completed&rdquo;; no cookies, no session recordings, no
           typed text) and error monitoring that records the error and the page it happened on. Neither
           receives your contract text, cookies or request contents.
         </li>
